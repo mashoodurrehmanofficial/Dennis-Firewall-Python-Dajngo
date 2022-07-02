@@ -1,0 +1,170 @@
+{% extends 'partials/layout.html' %} 
+{% block 'mainlayout' %}  
+
+
+<section id="basic-datatable">
+
+ 
+
+    <div class="row">
+      <div class="col-12">
+        <div class="card" style="padding:0px 2%">
+          <div class="card-header border-bottom p-1">
+            <div class="head-label">
+              <h6 class="mb-0">IP Access Listing</h6>
+            </div>
+            <div class="dt-action-buttons text-end">
+              <div class="dt-buttons d-inline-flex">
+                <a type="button" class="btn btn-primary" href="/admin/app/iptable/add/" target="_blank">
+                  Add new IP
+                </a>
+              </div> 
+     
+              
+            </div>
+  
+  
+          </div>
+  
+  
+  
+          <div class="row" id="basic-table">
+              <div class="col-12">
+                <div class="card"> 
+                  <div class="table-responsive">
+                    <table class="table">
+                      <thead>
+                        <tr>  
+                          <th> IP </th>
+                          <th> Operations </th>  
+                        </tr>
+                      </thead>
+                      <tbody id="ip_table_body">
+                        {% for ip in available_ips %} 
+                          <tr> 
+                                  <td> {{ip.ip}} </td> 
+                                    <td> 
+                                        <div> 
+                                            <select class="form-select changeAccessStatus" id="{{ip.id}}"> 
+                                                    {% if ip.allowed %}
+                                                        <option selected>Allow</option> 
+                                                        <option >Deny</option> 
+                                                    {% elif not ip.allowed %} 
+                                                        {% if   ip.waiting %} 
+                                                            <option selected></option> 
+                                                            <option >Deny </option> 
+                                                            <option >Allow</option> 
+                                                          {% else %}
+                                                            <option selected>Deny</option> 
+                                                            <option >Allow</option>  
+                                                        {% endif %} 
+                                                    {% endif %}  
+                                            </select>
+                                        </div> 
+                                    </td>  
+                                </tr> 
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div> 
+        </div>
+      </div>
+    </div>
+  </section>  
+ 
+ 
+
+<script> 
+function changeAccessStatus(){
+  $("select.changeAccessStatus").change(function(e){
+    var current_val = $(this).val() ;
+    var current_id = $(this).prop("id"); 
+    var total_options = $(`select#${current_id} option`).length;
+    console.log("total_options = ", total_options)
+    if(!current_val){
+      alert("Cannot set status to null\nPlease select a value")
+      return
+    }
+    else{
+      $.ajax({
+        url: "/changeAccessStatus/",
+        method: "POST",
+        data: {'val':current_val,"id":current_id},
+        success: function(res){
+          if(total_options==3){
+            $(`select#${current_id} option`).each(function() {
+              if ( $(this).val() == '' ) {
+                  $(this).remove();
+              }
+          });
+          }
+        }
+      })
+    }
+  })
+}
+changeAccessStatus()
+
+ 
+
+
+function getAvailableSelectBoxIds(){
+  var select_boxes = $("select.changeAccessStatus")
+  var ids = []
+  for(var i=0;i<select_boxes.length;i++){
+    ids.push($(select_boxes[i]).prop("id"))
+  }
+
+  return ids
+
+}
+ 
+
+setInterval(function(){
+
+  ids = getAvailableSelectBoxIds() 
+  $.ajax({
+    url: "/getWaitingList/",
+    dataType: "JSON",
+    method: "GET", 
+    data: {"ids":JSON.stringify(ids)},
+    success: function(res){  
+      var waiting_records = res.waiting_records;
+      console.log(waiting_records)
+      for(var i=0;i<waiting_records.length;i++){
+        var ip = waiting_records[i];
+        console.log("ip = ", ip.ip)
+        console.log("id = ", ip.id)
+        
+        $("#ip_table_body").prepend(` 
+          <tr> 
+            <td> ${ip.ip} </td> 
+            <td> 
+                <div> 
+                    <select class="form-select changeAccessStatus" id="${ip.id}">  
+                        <option selected></option> 
+                        <option >Allow</option> 
+                        <option >Deny</option>  
+                    </select>
+                </div> 
+            </td> 
+        </tr> 
+        `)
+      }
+
+    }
+  })
+
+
+
+changeAccessStatus()
+  
+},1000)
+
+
+</script>
+
+{% endblock 'mainlayout' %}
