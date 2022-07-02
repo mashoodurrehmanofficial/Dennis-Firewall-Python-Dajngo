@@ -133,11 +133,8 @@ def getWaitingList(request):
         waiting_records = waiting_records.filter(waiting=True)
     
     res['waiting_records'] = [{"ip":x.ip,"id":x.id} for x in waiting_records] 
-    
-    
     if waiting_records: 
         audio_thread = threading.Thread(target=playNotificationAudio)
         audio_thread.start()
          
-    
     return JsonResponse( res)

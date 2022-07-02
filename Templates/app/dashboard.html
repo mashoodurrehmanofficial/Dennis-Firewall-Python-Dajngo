@@ -124,7 +124,6 @@ function getAvailableSelectBoxIds(){
  
 
 setInterval(function(){
-
   ids = getAvailableSelectBoxIds() 
   $.ajax({
     url: "/getWaitingList/",
@@ -132,13 +131,9 @@ setInterval(function(){
     method: "GET", 
     data: {"ids":JSON.stringify(ids)},
     success: function(res){  
-      var waiting_records = res.waiting_records;
-      console.log(waiting_records)
+      var waiting_records = res.waiting_records; 
       for(var i=0;i<waiting_records.length;i++){
-        var ip = waiting_records[i];
-        console.log("ip = ", ip.ip)
-        console.log("id = ", ip.id)
-        
+        var ip = waiting_records[i]; 
         $("#ip_table_body").prepend(` 
           <tr> 
             <td> ${ip.ip} </td> 
@@ -156,12 +151,8 @@ setInterval(function(){
       }
 
     }
-  })
-
-
-
+  }) 
 changeAccessStatus()
-  
 },1000)
 
 
